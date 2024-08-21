@@ -566,47 +566,41 @@ void I_UpdateNoBlit(void)
 
 extern int screenblocks;
 
-#define fps_storage_size 16
-unsigned int stored_fps[fps_storage_size];
-unsigned int fps_array_pos = 0;
-unsigned int frame_ticcount;
+#define FPS_STORAGE_SIZE 128
+unsigned int fps_ticcount[FPS_STORAGE_SIZE];
+unsigned int fps_frametime[FPS_STORAGE_SIZE];
+unsigned int fps_head = 0;
+unsigned int fps_tail = 0;
+unsigned int fps_size = 0;
+unsigned int frame_average = 0;
+unsigned int last_ticcount = 0;
 
 void I_CalculateFPS(void)
 {
-    static unsigned int fps_counter, fps_starttime, fps_nextcalculation, average_fps, smoothness;
-    unsigned int opt1, opt2;
-    unsigned int current_fps;
-    unsigned int total;
-    unsigned int i;
-
-    if (fps_counter == 0)
-        fps_starttime = frame_ticcount;
-
-    fps_counter++;
-
-    opt2 = frame_ticcount - fps_starttime;
-
-    if (opt2 != 0)
+    unsigned int frame_time;
+    //remove old items (older than 1 sec)
+    while ((fps_size > 0 && ((ticcount - fps_ticcount[fps_head]) >= 35)) //TODO: try with 70
+        || (fps_size >= FPS_STORAGE_SIZE))
     {
-        opt1 = 35 * 10 * (fps_counter - 1);
-        current_fps = opt1 / opt2;
-
-        fps_counter = 0;
-
-        stored_fps[fps_array_pos] = current_fps;
-
-        total = 0;
-        for (i = 0; i < fps_storage_size; i++)
-        {
-            total += stored_fps[i];
-        }
-
-        fps = total / fps_storage_size;
-
-        fps_array_pos++;
-        if (fps_array_pos == fps_storage_size)
-            fps_array_pos = 0;
+        frame_average -= fps_frametime[fps_head]; 
+        fps_head++;
+        if (fps_head >= FPS_STORAGE_SIZE) fps_head = 0;
+        fps_size--;
     }
+
+    //calculate frame time
+    frame_time = ticcount - last_ticcount;
+    frame_average += frame_time;
+    last_ticcount = ticcount;
+        
+    //enqueue
+    fps_ticcount[fps_tail] = ticcount;
+    fps_frametime[fps_tail] = frame_time;    
+    fps_tail++;
+    if (fps_tail >= FPS_STORAGE_SIZE) fps_tail = 0;
+    fps_size++;
+
+    fps = frame_average == 0 ? 0 : (35 * 10 * fps_size) / frame_average;
 }
 
 //
