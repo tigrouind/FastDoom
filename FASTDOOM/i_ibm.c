@@ -566,47 +566,21 @@ void I_UpdateNoBlit(void)
 
 extern int screenblocks;
 
-#define fps_storage_size 16
-unsigned int stored_fps[fps_storage_size];
-unsigned int fps_array_pos = 0;
-unsigned int frame_ticcount;
+unsigned int frame_average = 0;
+unsigned int last_ticcount = 0;
 
 void I_CalculateFPS(void)
 {
-    static unsigned int fps_counter, fps_starttime, fps_nextcalculation, average_fps, smoothness;
-    unsigned int opt1, opt2;
-    unsigned int current_fps;
-    unsigned int total;
-    unsigned int i;
+    unsigned int frametime;
+    frametime = (ticcount - last_ticcount) * 1024;
 
-    if (fps_counter == 0)
-        fps_starttime = frame_ticcount;
-
-    fps_counter++;
-
-    opt2 = frame_ticcount - fps_starttime;
-
-    if (opt2 != 0)
+    while (last_ticcount < ticcount)
     {
-        opt1 = 35 * 10 * (fps_counter - 1);
-        current_fps = opt1 / opt2;
-
-        fps_counter = 0;
-
-        stored_fps[fps_array_pos] = current_fps;
-
-        total = 0;
-        for (i = 0; i < fps_storage_size; i++)
-        {
-            total += stored_fps[i];
-        }
-
-        fps = total / fps_storage_size;
-
-        fps_array_pos++;
-        if (fps_array_pos == fps_storage_size)
-            fps_array_pos = 0;
+        frame_average = (frame_average * 122 + frametime * 6) / 128; //TODO: try with 124 / 4
+        last_ticcount++;
     }
+    
+    fps = frame_average == 0 ? 0 : (35 * 10 * 1024) / frame_average;
 }
 
 //
