@@ -568,19 +568,21 @@ extern int screenblocks;
 
 unsigned int frame_average = 0;
 unsigned int last_ticcount = 0;
+unsigned int last_mscount = 0;
 
 void I_CalculateFPS(void)
 {
     unsigned int frametime;
-    frametime = (ticcount - last_ticcount) * 1024;
+    frametime = (mscount - last_mscount) * 1024;
+	last_mscount = mscount;
 
     while (last_ticcount < ticcount)
     {
-        frame_average = (frame_average * 122 + frametime * 6) / 128; //TODO: try with 124 / 4
+        frame_average = (frame_average * 122 + frametime * 6) / 128;
         last_ticcount++;
     }
     
-    fps = frame_average == 0 ? 0 : (35 * 10 * 1024) / frame_average;
+    fps = frame_average == 0 ? 0 : (1000 * 10 * 1024) / frame_average;
 }
 
 //
