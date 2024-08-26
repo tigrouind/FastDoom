@@ -566,7 +566,7 @@ void I_UpdateNoBlit(void)
 
 extern int screenblocks;
 
-#define FPS_STORAGE_SIZE 35 //TODO: try with 70
+#define FPS_STORAGE_SIZE 35
 unsigned int fps_frametime[FPS_STORAGE_SIZE];
 unsigned int fps_head = 0;
 unsigned int frame_sum = 0;
@@ -575,7 +575,8 @@ unsigned int last_ticcount = 0;
 void I_CalculateFPS(void)
 {
     unsigned int frametime;
-    frametime = ticcount - last_ticcount;
+    frametime = mscount - last_mscount;
+    last_mscount = mscount;
 
     while (last_ticcount < ticcount)
     {
@@ -587,7 +588,7 @@ void I_CalculateFPS(void)
         last_ticcount++;
     }
 
-    fps = frame_sum == 0 ? 0 : (35 * 10 * FPS_STORAGE_SIZE) / frame_sum;
+    fps = frame_sum == 0 ? 0 : (1000 * 10 * FPS_STORAGE_SIZE) / frame_sum;
 }
 
 //
