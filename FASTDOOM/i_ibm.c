@@ -579,7 +579,7 @@ void I_CalculateFPS(void)
 {
     unsigned int frame_time;
     //remove old items (older than 1 sec)
-    while ((fps_size > 0 && ((ticcount - fps_ticcount[fps_head]) >= 35)) //TODO: try with 70
+    while ((fps_size > 0 && ((mscount - fps_ticcount[fps_head]) >= 1000))
         || (fps_size >= FPS_STORAGE_SIZE))
     {
         frame_average -= fps_frametime[fps_head]; 
@@ -589,18 +589,18 @@ void I_CalculateFPS(void)
     }
 
     //calculate frame time
-    frame_time = ticcount - last_ticcount;
+    frame_time = mscount - last_ticcount;
     frame_average += frame_time;
-    last_ticcount = ticcount;
+    last_ticcount = mscount;
         
     //enqueue
-    fps_ticcount[fps_tail] = ticcount;
+    fps_ticcount[fps_tail] = mscount;
     fps_frametime[fps_tail] = frame_time;    
     fps_tail++;
     if (fps_tail >= FPS_STORAGE_SIZE) fps_tail = 0;
     fps_size++;
 
-    fps = frame_average == 0 ? 0 : (35 * 10 * fps_size) / frame_average;
+    fps = frame_average == 0 ? 0 : (1000 * 10 * fps_size) / frame_average;
 }
 
 //
